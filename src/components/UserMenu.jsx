@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-function UserMenu({ userName, userRole, onLogout }) {
+function UserMenu({ userName, userRole, onLogout, onChangePassword }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState('')
   const menuRef = useRef(null)
-  const inputFileRef = useRef(null)
 
   const avatarInitial = userName.slice(0, 1).toUpperCase()
 
@@ -21,51 +19,7 @@ function UserMenu({ userName, userRole, onLogout }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const clearAvatarUrl = (currentAvatarUrl) => {
-    if (currentAvatarUrl) {
-      URL.revokeObjectURL(currentAvatarUrl)
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      clearAvatarUrl(avatarUrl)
-    }
-  }, [avatarUrl])
-
-  const handleAvatarUpload = (event) => {
-    const selectedFile = event.target.files?.[0]
-    if (!selectedFile) {
-      return
-    }
-
-    const nextAvatarUrl = URL.createObjectURL(selectedFile)
-    setAvatarUrl((currentAvatarUrl) => {
-      clearAvatarUrl(currentAvatarUrl)
-
-      return nextAvatarUrl
-    })
-    event.target.value = ''
-  }
-
-  const handleAvatarAction = () => {
-    if (avatarUrl) {
-      setAvatarUrl((currentAvatarUrl) => {
-        clearAvatarUrl(currentAvatarUrl)
-
-        return ''
-      })
-      return
-    }
-
-    inputFileRef.current?.click()
-  }
-
   const renderAvatar = () => {
-    if (avatarUrl) {
-      return <img src={avatarUrl} alt="Foto de usuario" className="user-avatar-image" />
-    }
-
     return (
       <span className="user-avatar" aria-hidden="true">
         {avatarInitial}
@@ -98,23 +52,19 @@ function UserMenu({ userName, userRole, onLogout }) {
               </div>
             </div>
 
-            <input
-              ref={inputFileRef}
-              type="file"
-              accept="image/*"
-              className="d-none"
-              onChange={handleAvatarUpload}
-            />
-
             <div className="user-menu-actions d-flex flex-column align-items-start gap-2">
               <button
                 type="button"
                 className="btn btn-link p-0 text-decoration-none user-menu-action"
-                onClick={handleAvatarAction}
+                onClick={() => {
+                  setIsOpen(false)
+                  onChangePassword?.()
+                }}
               >
-                {avatarUrl ? 'Eliminar foto' : 'Subir foto'}
+                <i className="bi bi-key me-2" aria-hidden="true" />
+                Cambiar mi contraseña
               </button>
-
+              <hr className="w-100 my-0" />
               <button
                 type="button"
                 className="btn btn-link p-0 text-decoration-none user-menu-action"

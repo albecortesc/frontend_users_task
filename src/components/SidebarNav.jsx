@@ -29,6 +29,18 @@ function SidebarNav({ menuItems, activeSection, onSelect }) {
     })
   }, [activeSection])
 
+  const handleGroupClick = (item) => {
+    setExpandedGroups((currentState) => ({
+      ...currentState,
+      [item.key]: !currentState[item.key],
+    }))
+
+    // If the group is opened from a different section, default to the first submenu option.
+    if (item.children?.length && !activeSection.startsWith(`${item.key}-`)) {
+      onSelect(item.children[0].key)
+    }
+  }
+
   return (
     <nav className="nav nav-pills flex-column gap-2 sidebar-nav">
       {menuItems.map((item) => {
@@ -44,12 +56,7 @@ function SidebarNav({ menuItems, activeSection, onSelect }) {
                 className={`nav-link text-start d-flex align-items-center fw-medium py-2 sidebar-nav-button sidebar-nav-toggle-button ${
                   isGroupActive ? 'active' : 'link-body-emphasis'
                 }`}
-                onClick={() =>
-                  setExpandedGroups((currentState) => ({
-                    ...currentState,
-                    [item.key]: !currentState[item.key],
-                  }))
-                }
+                onClick={() => handleGroupClick(item)}
                 aria-expanded={isExpanded}
                 aria-controls={submenuId}
               >

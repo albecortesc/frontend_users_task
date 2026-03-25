@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getTasks, getUsers } from '../api/client'
 
-export const useDashboardData = () => {
+export const useDashboardData = ({ enabled = true } = {}) => {
   const [users, setUsers] = useState([])
   const [tasks, setTasks] = useState([])
 
@@ -11,38 +11,48 @@ export const useDashboardData = () => {
   const [usersError, setUsersError] = useState('')
   const [tasksError, setTasksError] = useState('')
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      setIsLoadingUsers(true)
-      setUsersError('')
+  const loadUsers = useCallback(async () => {
+    setIsLoadingUsers(true)
+    setUsersError('')
 
-      try {
-        const data = await getUsers()
-        setUsers(data)
-      } catch (error) {
-        setUsersError(error.message)
-      } finally {
-        setIsLoadingUsers(false)
-      }
+    try {
+      const data = await getUsers()
+      setUsers(data)
+    } catch (error) {
+      setUsersError(error.message)
+    } finally {
+      setIsLoadingUsers(false)
     }
+  }, [])
 
-    const loadTasks = async () => {
-      setIsLoadingTasks(true)
+  const loadTasks = useCallback(async () => {
+    setIsLoadingTasks(true)
+    setTasksError('')
+
+    try {
+      const data = await getTasks()
+      setTasks(data)
+    } catch (error) {
+      setTasksError(error.message)
+    } finally {
+      setIsLoadingTasks(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!enabled) {
+      setUsers([])
+      setTasks([])
+      setUsersError('')
       setTasksError('')
-
-      try {
-        const data = await getTasks()
-        setTasks(data)
-      } catch (error) {
-        setTasksError(error.message)
-      } finally {
-        setIsLoadingTasks(false)
-      }
+      setIsLoadingUsers(false)
+      setIsLoadingTasks(false)
+      return
     }
 
     loadUsers()
     loadTasks()
-  }, [])
+  }, [enabled, loadTasks, loadUsers])
 
   const completedTasksCount = useMemo(() => {
     return tasks.filter((task) => task.completed === true).length
@@ -56,5 +66,6 @@ export const useDashboardData = () => {
     usersError,
     tasksError,
     completedTasksCount,
+    reloadUsers: loadUsers,
   }
 }
